@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>收件信息一键分列小工具</title>
+<style>
+body {
+  font-family: "Segoe UI", sans-serif;
+  margin: 40px;
+  background: #f8f9fa;
+  color: #333;
+}
+h2 { color: #2b6cb0; }
+textarea, pre { width: 100%; font-size: 14px; }
+textarea {
+  height: 180px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  resize: vertical;
+}
+button {
+  margin: 10px 6px 10px 0;
+  padding: 10px 18px;
+  font-size: 15px;
+  border-radius: 8px;
+  border: none;
+  background: #3182ce;
+  color: white;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+button:hover { background: #2563eb; transform: translateY(-1px); }
+pre {
+  background: #fff;
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 8px;
+  white-space: pre-wrap;
+  min-height: 120px;
+}
+.note { color: #666; font-size: 13px; }
+#toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #48bb78;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  pointer-events: none;
+}
+</style>
+</head>
+<body>
+<h2>📦 收件信息 → Excel三列格式 一键转换并复制</h2>
+<p>请粘贴原始的日本收件信息（每个收件之间空一行）：</p>
+
+<textarea id="input" placeholder=""></textarea>
+
+<div>
+  <button onclick="convertAndCopy()">🚀 一键转换并复制</button>
+  <button onclick="clearAll()" style="background:#e53e3e;">🧹 清空</button>
+</div>
+
+<pre id="output" placeholder="转换结果会出现在这里~"></pre>
+<p class="note">提示：输出内容中的制表符（Tab）可直接让Excel分成三列~</p>
+
+<div id="toast">✅ 已复制到剪贴板！</div>
+
+<script>
+function convertAndCopy() {
+  const input = document.getElementById('input').value.trim();
+  const output = document.getElementById('output');
+  const blocks = input.split(/\n\s*\n/);
+  let result = "";
+  blocks.forEach(block => {
+    const lines = block.split(/\n/).map(l => l.trim()).filter(l => l);
+    if (lines.length >= 3) {
+      const postal = lines[0];
+      const name = lines[lines.length - 1].replace(/\s*様$/, "");
+      const address = lines.slice(1, -1).join(" ");
+      result += `${name}\t${postal}\t${address}\n`;
+    }
+  });
+  output.textContent = result || "（没有检测到有效信息，请检查格式）";
+
+  if (result.trim()) {
+    navigator.clipboard.writeText(result).then(() => showToast("✅ 已复制到剪贴板！"));
+  } else {
+    showToast("⚠️ 没有检测到有效内容");
+  }
+}
+
+function showToast(message) {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.style.opacity = 1;
+  setTimeout(() => { toast.style.opacity = 0; }, 1800);
+}
+
+function clearAll() {
+  document.getElementById('input').value = "";
+  document.getElementById('output').textContent = "";
+  showToast("🧹 已清空");
+}
+</script>
+</body>
+</html>
